@@ -1,6 +1,32 @@
-venv/
+# ===== VS Code =====
+.vscode/*
+!.vscode/extensions.json
+
+# ===== Python =====
 __pycache__/
-*.pyc
-node_modules/
+*.py[cod]
+*.pyo
 .env
- 
+.venv/
+env/
+venv/
+
+# Conda
+*.conda
+*.egg-info/
+
+# ===== FastAPI =====
+*.log
+
+# ===== Node / Vite / React =====
+node_modules/
+dist/
+build/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Misc =====
+*.tmp
+*.swp

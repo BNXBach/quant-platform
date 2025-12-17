@@ -1,1 +1,1 @@
-"# Quant Platform" 
+# Quant Platform 
