@@ -10,8 +10,7 @@ import matplotlib.pyplot as plt
 
 from backend.quant.phase1_cvar.config import p1_config
 from backend.quant.phase1_cvar.logging_utils import setup_logger
-from backend.quant.phase1_cvar.scenarios import ScenarioSpec, generate_scenarios, summarize_matrix, corr_matrix, plot_hist_vs_scen, plot_corr_heatmap
-
+from backend.quant.phase1_cvar.scenarios import *
 def main():
     logger = setup_logger(
         name="phase1",
@@ -30,8 +29,14 @@ def main():
     rets = pd.read_parquet(rets_path)
     logger.info("Loaded returns: shape=%s date_range=%s→%s", rets.shape, rets.index.min().date(), rets.index.max().date())
     logger.info("Assets: %s", list(rets.columns))
-    corr_rets = plot_corr_heatmap(corr_matrix(rets.to_numpy()),labels=list(rets.columns),title=f"data", out_dir=out_dir)
-    corr_rets.show()
+
+    plot_corr_heatmap(corr_matrix(rets.to_numpy()),labels=list(rets.columns),title=f"data", out_dir=out_dir)
+    # Also log historical summary for comparison
+    hist_summ = summarize_matrix(rets.to_numpy())
+    with open(out_dir / "summary_data.json", "w", encoding="utf-8") as f:
+        json.dump(hist_summ, f, indent=2)
+    logger.info("Saved data infos.")
+
     # ---- Choose scenario specs to compare ----
     specs = [
         ScenarioSpec(method="historical", n_scenarios=2000, seed=1),
@@ -50,6 +55,7 @@ def main():
         summ = summarize_matrix(X)
         results[spec.method] = summ
 
+        plot_quantiles(rets, X, title=f"{spec.method} quantiles", out_dir=out_dir)
         # Save scenarios
         np.save(out_dir / f"scenarios_{spec.method}.npy", X)
 
@@ -58,15 +64,12 @@ def main():
             json.dump(summ, f, indent=2)
 
         # Basic validation plots
-        fig_hist = plot_hist_vs_scen(rets, X, title=f"{spec.method} scenarios", out_dir=out_dir)
-        fig_corr = plot_corr_heatmap(corr_matrix(X),labels=list(rets.columns),title=f"{spec.method}", out_dir=out_dir)
+        plot_hist_vs_scen(rets, X, title=f"{spec.method} scenarios", out_dir=out_dir)
+        plot_corr_heatmap(corr_matrix(X),labels=list(rets.columns),title=f"{spec.method}", out_dir=out_dir)
 
-        fig_hist.show()
-        fig_corr.show()
-    # Also log historical summary for comparison
-    hist_summ = summarize_matrix(rets.to_numpy())
-    with open(out_dir / "summary_historical_data.json", "w", encoding="utf-8") as f:
-        json.dump(hist_summ, f, indent=2)
+    for spec in specs:
+        info_df = scenario_stability(rets, spec, n_repeats=10, out_dir=out_dir)
+        logger.info("Stability info for method=%s:\n%s", spec.method, info_df)
 
     logger.info("Saved Step 2 outputs to %s", out_dir.resolve())
     logger.info("Done.")
