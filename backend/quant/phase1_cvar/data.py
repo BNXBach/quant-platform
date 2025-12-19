@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import logging
 import json
+import plotly.graph_objects as go
 from backend.quant.phase1_cvar.logging_utils import setup_logger
 
 def compute_log_returns(prices: pd.DataFrame | pd.Series) -> pd.DataFrame | pd.Series:
@@ -47,6 +48,49 @@ def save_data(prices: pd.DataFrame | pd.Series, rets: pd.DataFrame | pd.Series, 
     prices.to_csv(out_dir/"prices.csv")
     rets.to_csv(out_dir/"returns.csv")
 
+def plot_log_returns(prices: pd.DataFrame | pd.Series, rets: pd.DataFrame | pd.Series) -> tuple:
+    fig_price = go.Figure()
+    fig_rets = go.Figure()
+
+    for ticker in rets.columns:
+        fig_price.add_trace(
+            go.Scatter(
+                x=prices.index,
+                y=prices[ticker],
+                mode="lines",
+                name=ticker
+            )
+        )
+        fig_rets.add_trace(
+            go.Scatter(
+                x=rets.index,
+                y=rets[ticker],
+                mode="lines",
+                name=ticker
+            )
+        )
+
+    fig_price.update_layout(
+        title="Price (Interactive)",
+        xaxis_title="Date",
+        yaxis_title="Price",
+        hovermode="x unified",
+        xaxis=dict(
+            hoverformat="%b-%d-%Y"
+        )
+    )
+    fig_rets.update_layout(
+        title="Log Returns (Interactive)",
+        xaxis_title="Date",
+        yaxis_title="Log Return",
+        hovermode="x unified",
+        xaxis=dict(
+            hoverformat="%b-%d-%Y"
+        )
+    )
+
+    return (fig_price,fig_rets)
+
 def main():
     from backend.quant.phase1_cvar.config import p1_config
 
@@ -86,6 +130,11 @@ def main():
     save_data(prices, rets, p1_config.data_path)
     logger.info("Saved data to %s", p1_config.data_path.resolve())
 
+    fig_price, fig_rets = plot_log_returns(prices, rets)
+    fig_price.write_html(Path("backend/reports/phase1/data/price.html"))  
+    fig_rets.write_html(Path("backend/reports/phase1/data/log_returns.html"))
+    logger.info("Saved interactive plots to %s", Path("backend/reports/phase1/data/").resolve())
+    
     
     rets = compute_log_returns(prices)
     save_data(prices, rets, p1_config.data_path)
@@ -106,6 +155,9 @@ def main():
     (p1_config.data_path).mkdir(parents=True, exist_ok=True)
     with open(p1_config.data_path / "metadata.json", "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
+
+    fig_price.show()
+    fig_rets.show()
 if __name__ == "__main__":
     main()
 
