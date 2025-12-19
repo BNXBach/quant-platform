@@ -11,7 +11,10 @@ __pycache__/
 env/
 venv/
 
-# Conda
+# ===== Plotly  =====
+backend/reports/**/*.html
+
+#  ===== Conda =====
 *.conda
 *.egg-info/
 
