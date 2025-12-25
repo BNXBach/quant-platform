@@ -8,6 +8,9 @@ class P1Config:
     start: str = "2020-01-01"
     end: str| None = None
     frequency: str = "W-FRI"
+    alpha: float = 0.95
+    w_max: float = 0.35
+    l2_tau: float = 0.5
 
 p1_config = P1Config(
     tickers=["SPY", "QQQ", "IWM", "EFA", "EEM"]

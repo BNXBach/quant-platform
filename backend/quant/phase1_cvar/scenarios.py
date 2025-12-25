@@ -21,7 +21,6 @@ def historical_sample(rets: pd.DataFrame | pd.Series, spec: ScenarioSpec) -> np.
     rng = np.random.default_rng(spec.seed)
     T = rets.shape[0]
     idx = rng.integers(0, T, size=spec.n_scenarios)
-    print(idx)
     return rets.iloc[idx].to_numpy()
 
 def moving_block_bootstrap(rets: pd.DataFrame | pd.Series, spec: ScenarioSpec) -> np.ndarray:
