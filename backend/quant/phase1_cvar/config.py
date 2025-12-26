@@ -11,6 +11,9 @@ class P1Config:
     alpha: float = 0.95
     w_max: float = 0.35
     l2_tau: float = 0.5
+    train_weeks: int = 156          # 3 years weekly
+    n_scenarios: int = 2000
+    mbb_block_len: int = 5
 
 p1_config = P1Config(
     tickers=["SPY", "QQQ", "IWM", "EFA", "EEM"]
