@@ -12,7 +12,7 @@ def compute_log_returns(prices: pd.DataFrame | pd.Series) -> pd.DataFrame | pd.S
     return np.log(prices).diff().dropna() # type: ignore
 
 def resample_prices(prices: pd.DataFrame | pd.Series, frequency: str) -> pd.DataFrame | pd.Series:
-    return prices.resample(frequency).last().dropna() # type: ignore
+    return prices.resample(frequency).last() # type: ignore
 
 def load_prices_yfinance(tickers: list[str], start: str, end: str | None, renew: bool = False) -> pd.Series:
     import yfinance as yf
@@ -23,9 +23,9 @@ def load_prices_yfinance(tickers: list[str], start: str, end: str | None, renew:
             end=end,
             progress=False,
         )
-        df.to_parquet("backend/quant/phase1_cvar/raw_yf.parquet") # type: ignore
+        df.to_parquet("backend/data/raw_yf.parquet") # type: ignore
     else:
-        df = pd.read_parquet("backend/quant/phase1_cvar/raw_yf.parquet", engine = "pyarrow")
+        df = pd.read_parquet("backend/data/raw_yf.parquet", engine = "pyarrow")
 
     if df is None or df.empty:
         raise ValueError("No data downloaded from yfinance.")
@@ -96,7 +96,8 @@ def main():
 
     logger = setup_logger(
         name="phase1",
-        level=logging.INFO,
+        console_level=logging.INFO,
+        file_level=logging.DEBUG,
         log_file="backend/reports/phase1/logs/phase1_data.log",
     )
 
@@ -108,13 +109,15 @@ def main():
         tickers=p1_config.tickers,
         start=p1_config.start,
         end=p1_config.end,
-        renew=False,
+        renew=p1_config.renew_data,
     )
     logger.info("Downloaded prices: shape=%s", raw_prices.shape)
+    logger.info("First raw price date: %s", raw_prices.index.min().date())
     logger.info("Last raw price date: %s", raw_prices.index.max().date())
 
     prices = resample_prices(raw_prices, p1_config.frequency)
     logger.info("Resampled prices: shape=%s", prices.shape)
+    logger.info("First resampled price date: %s", prices.index.min().date())
     logger.info("Last resampled price date: %s", prices.index.max().date())
     # prices = clean_prices(prices)
     # logger.info("Cleaned prices: shape=%s", prices.shape)

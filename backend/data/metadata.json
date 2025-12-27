@@ -1,17 +1,21 @@
 {
   "tickers": [
     "EEM",
-    "EFA",
-    "IWM",
+    "EMB",
+    "GLD",
+    "HYG",
+    "IEF",
     "QQQ",
-    "SPY"
+    "SPY",
+    "TLT",
+    "XLE"
   ],
-  "start": "2020-01-01",
-  "end": null,
+  "start": "2005-01-01",
+  "end": "2025-11-30",
   "freq": "W-FRI",
-  "n_prices": 312,
-  "n_returns": 311,
-  "last_raw_price_date": "2025-12-17",
-  "last_resampled_price_date": "2025-12-19",
-  "last_return_date": "2025-12-19"
+  "n_prices": 1091,
+  "n_returns": 936,
+  "last_raw_price_date": "2025-11-28",
+  "last_resampled_price_date": "2025-11-28",
+  "last_return_date": "2025-11-28"
 }

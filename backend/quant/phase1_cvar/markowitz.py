@@ -18,7 +18,7 @@ def markowitz_portfolio(rets: np.ndarray, target_return: float, w_max: float = 1
     constraints = [
         cp.sum(w) == 1,  # Weights sum to 1
         target_return <= mu @ w,
-        mu @ w <= target_return + 1e-10,
+        mu @ w <= target_return + 1e-7,
         w >= 0,  # No short selling
         w <= w_max  # Max weight constraint
     ]

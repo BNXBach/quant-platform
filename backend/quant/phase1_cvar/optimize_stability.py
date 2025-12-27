@@ -37,7 +37,8 @@ def distances(w: np.ndarray, w_ref: np.ndarray) -> dict:
 def main():
     logger = setup_logger(
         name="phase1",
-        level=logging.INFO,
+        console_level=logging.INFO,
+        file_level=logging.DEBUG,
         log_file="backend/reports/phase1/logs/phase1_optimize_stability.log",
     )
 
@@ -70,20 +71,20 @@ def main():
         cvar_runs = []
         for seed in seeds:
             spec = ScenarioSpec(method=method, n_scenarios=2000, seed=seed, block_len=5)
-            X = generate_scenarios(rets, spec)  # (S, N)
+            scen = generate_scenarios(rets, spec)  # (S, N)
 
-            cvar_json = cvar_portfolio(rets_matrix, w_max=w_max, l2_tau=l2_tau, scenarios=X, alpha=alpha)
+            cvar_json = cvar_portfolio(rets_matrix, w_max=w_max, l2_tau=l2_tau, scenarios=scen, alpha=alpha)
             cvar_res = json.loads(cvar_json)
             w_cvar = np.array(cvar_res["weights"], dtype=float)
 
-            cvar_runs.append((seed, X, cvar_res, w_cvar))
+            cvar_runs.append((seed, scen, cvar_res, w_cvar))
 
         # reference = mean weights across seeds (more stable than picking seed 0)
         w_ref_cvar = np.mean([w for _, _, _, w in cvar_runs], axis=0)
 
         # Second pass: run Markowitz at iso-return and compute stability metrics
         mv_runs = []
-        for seed, _, cvar_res, w_cvar in cvar_runs:
+        for seed, scen, cvar_res, w_cvar in cvar_runs:
             mu_star = float(cvar_res["expected_return"])
 
             mv_json = markowitz_portfolio(
@@ -91,7 +92,7 @@ def main():
                 target_return=mu_star,
                 w_max=w_max,
                 l2_tau=l2_tau,
-                scenarios=X,
+                scenarios=scen,
                 alpha=alpha,
             )
             mv_res = json.loads(mv_json)
@@ -99,7 +100,7 @@ def main():
             mv_runs.append((seed, mv_res, w_mv))
 
         w_ref_mv = np.mean([w for _, _, w in mv_runs], axis=0)
-        for (seed, X, cvar_res, w_cvar), (_, mv_res, w_mv) in zip(cvar_runs, mv_runs):
+        for (seed, scen, cvar_res, w_cvar), (_, mv_res, w_mv) in zip(cvar_runs, mv_runs):
             row = {
                 "method": method,
                 "seed": seed,

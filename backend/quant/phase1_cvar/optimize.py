@@ -16,11 +16,12 @@ from backend.quant.phase1_cvar.scenarios import ScenarioSpec, generate_scenarios
 def main():
     logger = setup_logger(
         name="phase1",
-        level=logging.INFO,
+        console_level=logging.INFO,
+        file_level=logging.DEBUG,
         log_file="backend/reports/phase1/logs/phase1_optimize.log",
     )
 
-    scen_dir = Path("backend/reports/phase1/scenarios")
+    scen_dir = Path("backend/data")
     scen_files = {
         "historical": scen_dir / "scenarios_historical.npy",
         "mbb": scen_dir / "scenarios_mbb.npy",

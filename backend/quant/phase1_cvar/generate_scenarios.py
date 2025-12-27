@@ -14,7 +14,8 @@ from backend.quant.phase1_cvar.scenarios import *
 def main():
     logger = setup_logger(
         name="phase1",
-        level=logging.INFO,
+        console_level=logging.INFO,
+        file_level=logging.DEBUG,
         log_file="backend/reports/phase1/logs/phase1_scenarios.log",
     )
 
@@ -57,7 +58,7 @@ def main():
 
         plot_quantiles(rets, X, title=f"{spec.method} quantiles", out_dir=out_dir)
         # Save scenarios
-        np.save(out_dir / f"scenarios_{spec.method}.npy", X)
+        np.save(data_dir / f"scenarios_{spec.method}.npy", X)
 
         # Save summary JSON
         with open(out_dir / f"summary_{spec.method}.json", "w", encoding="utf-8") as f:

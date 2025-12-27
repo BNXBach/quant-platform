@@ -6,14 +6,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from tqdm import tqdm
+
 from backend.quant.phase1_cvar.logging_utils import setup_logger
 from backend.quant.phase1_cvar.config import p1_config
 from backend.quant.phase1_cvar.cvar import cvar_portfolio
 from backend.quant.phase1_cvar.markowitz import markowitz_portfolio
-
 from backend.quant.phase1_cvar.backtest_utils import turnover, realized_portfolio_return, equal_weight, max_drawdown, realized_var_cvar
-
-
 from backend.quant.phase1_cvar.scenarios import generate_scenarios, ScenarioSpec  
 
 
@@ -34,7 +33,8 @@ def summarize(df: pd.DataFrame, ptype: str) -> dict:
 def main():
     logger = setup_logger(
         name="phase1",
-        level=logging.INFO,
+        console_level=logging.INFO,
+        file_level=logging.DEBUG,
         log_file="backend/reports/phase1/logs/phase1_backtest.log",
     )
 
@@ -67,13 +67,16 @@ def main():
     rows = []
     weights_rows = []  # store weights time series
 
-    for t in range(start_idx, end_idx):
+    pbar = tqdm(range(start_idx, end_idx), total=end_idx-start_idx, desc="Backtest", unit="reb")
+
+    for t in pbar:
         train = rets.iloc[t - p1_config.train_weeks : t]  # up to t-1 inclusive
         next_ret = rets.iloc[t].to_numpy()          # realized at t (next period)
 
         date = rets.index[t]
-        logger.info("Rebalance date=%s train_window=[%s→%s] eval_next=%s",
+        logger.debug("Rebalance date=%s train_window=[%s→%s] eval_next=%s",
                     train.index.max().date(), train.index.min().date(), train.index.max().date(), date.date())
+        pbar.set_postfix_str(f"date={date.date()}")
 
         # Generate scenarios from TRAIN only
         for method in scens.keys():

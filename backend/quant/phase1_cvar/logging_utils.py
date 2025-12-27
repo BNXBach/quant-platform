@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+import sys
 
 def setup_logger(
     name: str = "quant-platform",
-    level: int = logging.INFO,
+    console_level: int = logging.INFO,
+    file_level: int = logging.INFO,
     log_file: str | None = None,
 ) -> logging.Logger:
     """
@@ -13,7 +15,7 @@ def setup_logger(
     Safe to call multiple times (won't duplicate handlers).
     """
     logger = logging.getLogger(name)
-    logger.setLevel(level)
+    logger.setLevel(logging.DEBUG)  # Capture all levels; handlers will filter
 
     if logger.handlers:
         return logger  # already configured
@@ -24,8 +26,8 @@ def setup_logger(
     )
 
     # Console handler
-    ch = logging.StreamHandler()
-    ch.setLevel(level)
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(console_level)
     ch.setFormatter(fmt)
     logger.addHandler(ch)
 
@@ -33,7 +35,7 @@ def setup_logger(
     if log_file:
         Path(log_file).parent.mkdir(parents=True, exist_ok=True)
         fh = logging.FileHandler(log_file, encoding="utf-8")
-        fh.setLevel(level)
+        fh.setLevel(file_level)
         fh.setFormatter(fmt)
         logger.addHandler(fh)
 
